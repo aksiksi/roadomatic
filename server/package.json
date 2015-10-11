@@ -1,0 +1,9 @@
+{
+  "name": "gp2-server",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "^4.13.3",
+    "jade": "^1.11.0",
+    "mongodb": "^2.0.43"
+  }
+}
