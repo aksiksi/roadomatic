@@ -11,4 +11,4 @@ The system delivers road information in realtime to drivers. It consists of a cl
 * `client`: houses the Android application code; written in Java
 * `server`: written in Node.js
   - `admin.js`: the admin frontend web app
-  - `server.js`: the UDP server, requires a running MongoDB instance
+  - `server.js`: the UDP server used to receive packets from clients; requires a running MongoDB instance

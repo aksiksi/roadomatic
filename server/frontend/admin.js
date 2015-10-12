@@ -5,19 +5,17 @@ var express = require('express');
 var jade = require('jade');
 var MongoClient = require('mongodb').MongoClient;
 
+// Create an Express app
 var app = express();
 
-// Config variables
-const PORT = 8000;
-const DB_URL = 'mongodb://localhost:27017/testing';
-const ROADS = 'roads';
-const SEGMENTS = 'segments';
+// Load configuration
+var config = require('../config.js');
 
 // Set static directory
-app.use(express.static(path.join(__dirname, 'static')));
+app.use(express.static(path.join(__dirname, config.static_dir)));
 
 // Use Jade for templating
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, config.views_dir));
 app.set('view engine', 'jade');
 
 // Setup body-parser, needed for POST param extraction
@@ -38,39 +36,53 @@ app.get('/', (req, res) => {
 app.post('/segment', (req, res) => {
   const data = {
     name: roads[req.body.name],
-    shape: req.body.segment,
+    shape: JSON.parse(req.body.segment),
     speed: parseInt(req.body.speed)
   };
 
   console.log(data);
 
-  // Write to DB
-  writeSegment(data, () => res.redirect('/'));
+  writeSegment(data, (err) => {
+    if (err) {
+      res.redirect('/');
+    }
+    else {
+      res.render('success');
+    }
+  });
 });
 
 // Write a Segment to DB
 var writeSegment = (data, callback) => {
-  MongoClient.connect(DB_URL, (err, db) => {
+  MongoClient.connect(config.db_url, (err, db) => {
     // Database offline
-    if (err != null) {
+    if (err) {
       console.log(err);
-      callback();
+      callback(err);
     } else {
       // Get road_id
-      db.collection(ROADS).findOne({name: data.name}, (err, road) => {
-        if (err != null || road == null) {
+      db.collection(config.roads).findOne({name: data.name}, (err, road) => {
+        if (err || !road) {
           db.close();
-          callback();
+          callback(err);
         } else {
-          data.road_id = road._id;
+          const segment = {
+            speed: data.speed,
+            road_id: road._id,
+            shape: data.shape
+          };
 
-          db.collection(SEGMENTS).insertOne(data, (err, res) => {
-            if (err != null || road == null) {
+          db.collection(config.segments).insertOne(segment, (err, res) => {
+            if (err || !road) {
               console.log(err);
+              callback(err);
             }
-            console.log(res);
+
+            else {
+              callback();
+            }
+
             db.close();
-            callback();
           });
         }
       });
@@ -78,12 +90,10 @@ var writeSegment = (data, callback) => {
   });
 };
 
-// Read a Segment from DB
-
 // Start the Express server
 var startServer = () => {
-  var server = app.listen(PORT, () => {
-    var host = server.address().address;
+  var server = app.listen(config.frontend_port, () => {
+    var host = config.frontend_host;
     var port = server.address().port;
 
     console.log('http://%s:%s', host, port);

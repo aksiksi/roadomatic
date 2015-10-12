@@ -4,14 +4,8 @@ var http = require('http');
 var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 
-// Database configuration
-const DB_URL = 'mongodb://localhost:27017/testing';
-const ROADS = 'roads';
-const SEGMENTS = 'segments';
-
-// UDP server configuration
-const HOSTNAME = '0.0.0.0';
-const PORT = 8080;
+// Load configuration
+var config = require('./config.js');
 
 // Default Response object
 const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
@@ -26,7 +20,7 @@ var findRoad = (parsed, db, callback) => {
     coordinates: [parsed.lng, parsed.lat]
   };
 
-  var segments = db.collection(SEGMENTS);
+  var segments = db.collection(config.segments);
 
   // Perform query on SEGMENTS collection
   // Find the road segment that contains Point `loc`
@@ -39,21 +33,21 @@ var findRoad = (parsed, db, callback) => {
   };
 
   segments.findOne(q, {speed: 1, road_id: 1, _id: 0}, (err, segment) => {
-    if (err != null) {
+    if (err) {
       // Collection read error
       console.log(err);
       resp.online = 0;
       callback(resp);
-    } else if (segment == null) {
+    } else if (!segment) {
       // No segment match!
       callback(resp);
     } else {
       // Segment match!
-      var roads = db.collection(ROADS);
+      var roads = db.collection(config.roads);
 
       // Find road name using road_id
       roads.findOne({_id: segment.road_id}, (err, road) => {
-        if (err != null || road == null) {
+        if (err || !road) {
           // Read error, return what we have
           console.log(err);
           resp.name = "";
@@ -101,8 +95,8 @@ var processRequest = (req, remote, socket) => {
   }
 
   if (valid) {
-    MongoClient.connect(DB_URL, (err, db) => {
-      if (err != null) {
+    MongoClient.connect(config.db_url, (err, db) => {
+      if (err) {
         // Database offline
         var resp = newResponse();
         resp.online = 0;
@@ -122,10 +116,10 @@ var processRequest = (req, remote, socket) => {
 var socket = dgram.createSocket('udp4');
 var c = 0;
 
-socket.bind(PORT, HOSTNAME);
+socket.bind(config.server_port, config.server_host);
 
 socket.on('listening', () => {
-  console.log('Listening on %s:%d...', HOSTNAME, PORT);
+  console.log('Listening on %s:%d...', config.server_host, config.server_port);
 });
 
 socket.on('message', (req, remote) => {
