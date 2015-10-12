@@ -1,0 +1,23 @@
+html(lang='en')
+  head
+    title= title
+    link(rel='stylesheet', href='/css/style.css')
+  body
+    h2 Add a Road Segment
+    form.form(method='post', action='/segment')
+      ul.form-list
+        li
+          select(name='name')
+            each label, value in roads
+              option(value=value)= label
+        li
+          textarea(
+            name='segment'
+            placeholder='Segment geometry in GeoJSON format {"type": "Polygon", ...}'
+            rows=10
+            cols=40
+          )
+        li
+          input(type='text', name='speed', placeholder='Speed limit')
+        li
+          button(type='submit') Submit!
