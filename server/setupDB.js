@@ -11,7 +11,7 @@ MongoClient.connect(config.db_url, (err, db) => {
       if (err) {
         console.log('%s collection already created!', config.roads);
       }
-      
+
       // Create segments collection
       db.createCollection(config.segments, (err, collection) => {
         if (err) {
@@ -27,5 +27,5 @@ MongoClient.connect(config.db_url, (err, db) => {
         });
       });
     });
-  });
+  }
 });
