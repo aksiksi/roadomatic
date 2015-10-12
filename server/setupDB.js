@@ -10,22 +10,22 @@ MongoClient.connect(config.db_url, (err, db) => {
     db.createCollection(config.roads, (err, collection) => {
       if (err) {
         console.log('%s collection already created!', config.roads);
-      } else {
-        // Create segments collection
-        db.createCollection(config.segments, (err, collection) => {
-          if (err) {
-            console.log('%s collection already created!', config.segments);
-          }
-
-          // Ensure index is present for GeoJSON objects
-          db.ensureIndex({shape: '2dsphere'}, (err, idx) => {
-            if (err) {
-              console.log('Index is present already.');
-            }
-            db.close();
-          });
-        });
       }
+      
+      // Create segments collection
+      db.createCollection(config.segments, (err, collection) => {
+        if (err) {
+          console.log('%s collection already created!', config.segments);
+        }
+
+        // Ensure index is present for GeoJSON objects
+        db.ensureIndex({shape: '2dsphere'}, (err, idx) => {
+          if (err) {
+            console.log('Index is present already.');
+          }
+          db.close();
+        });
+      });
     });
   });
 });
