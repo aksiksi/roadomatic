@@ -1,6 +1,6 @@
 // Script that sets up a fresh DB and creates required collections
 var MongoClient = require('mongodb').MongoClient;
-var config = require('./config.js');
+var config = require('../config.js');
 
 MongoClient.connect(config.db_url, (err, db) => {
   if (err) {

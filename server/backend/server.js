@@ -5,7 +5,7 @@ var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 
 // Load configuration
-var config = require('./config.js');
+var config = require('../config.js');
 
 // Default Response object
 const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
