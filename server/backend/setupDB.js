@@ -19,7 +19,7 @@ MongoClient.connect(config.db_url, (err, db) => {
         }
 
         // Ensure index is present for GeoJSON objects
-        db.ensureIndex({shape: '2dsphere'}, (err, idx) => {
+        db.collection(config.segments).ensureIndex({shape: '2dsphere'}, (err, idx) => {
           if (err) {
             console.log('Index is present already.');
           }
