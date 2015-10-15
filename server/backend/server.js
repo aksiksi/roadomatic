@@ -11,17 +11,14 @@ const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
 var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
-  Performs a simple XOR encryption on passed Buffer.
+  Performs a simple XOR encryption on passed String.
   Returns encrypted Buffer with key appended.
 */
 var encryptResponse = (resp) => {
   const key = Math.floor((Math.random()*254)) + 1;
   var encrypted = [];
 
-  resp.forEach((val) => {
-    encrypted.push(val ^ key);
-  });
-
+  resp.forEach((val, idx) => encrypted.push(val ^ key));
   encrypted.push(key);
 
   return new Buffer(encrypted);
@@ -103,9 +100,12 @@ var processRequest = (req, remote, socket) => {
       n: resp.name
     };
 
-    // Encrypt the response before sending
-    const b = new Buffer(JSON.stringify(short));
-    const enc = encryptResponse(b);
+    var b = new Buffer(JSON.stringify(short));
+
+    // Encrypt, if needed
+    if (config.server_encrypt) {
+      b = encryptResponse(b);
+    }
 
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
