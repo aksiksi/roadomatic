@@ -1,6 +1,5 @@
 // Imports
 var dgram = require('dgram');
-var http = require('http');
 var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 
@@ -11,6 +10,31 @@ var config = require('../config.js');
 const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
 var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
+/*
+  Performs a simple XOR encryption on passed Buffer.
+  Returns encrypted Buffer with key appended.
+*/
+var encryptResponse = (resp) => {
+  const key = Math.floor((Math.random()*254)) + 1;
+  var encrypted = [];
+
+  resp.forEach((val) => {
+    encrypted.push(val ^ key);
+  });
+
+  encrypted.push(key);
+
+  return new Buffer(encrypted);
+};
+
+/*
+  Given a parsed JSON request object:
+
+  1. Queries `segments` collection to find the road the coordinate lies on.
+  2. If matched, queries `roads` collection to determine road name.
+
+  Returns a Response object.
+*/
 var findRoad = (parsed, db, callback) => {
   const resp = newResponse();
 
@@ -63,7 +87,9 @@ var findRoad = (parsed, db, callback) => {
   });
 };
 
-// UDP message handler
+/*
+  UDP connection handler.
+*/
 var processRequest = (req, remote, socket) => {
   var parsed;
   var valid = true;
@@ -77,8 +103,10 @@ var processRequest = (req, remote, socket) => {
       n: resp.name
     };
 
-    // TODO: Perhaps add a single byte XOR key for basic encryption?
+    // Encrypt the response before sending
     const b = new Buffer(JSON.stringify(short));
+    const enc = encryptedResponse(b);
+
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
 
