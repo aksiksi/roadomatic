@@ -105,7 +105,7 @@ var processRequest = (req, remote, socket) => {
 
     // Encrypt the response before sending
     const b = new Buffer(JSON.stringify(short));
-    const enc = encryptedResponse(b);
+    const enc = encryptResponse(b);
 
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
