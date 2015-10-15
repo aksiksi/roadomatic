@@ -44,8 +44,7 @@ app.post('/segment', (req, res) => {
   writeSegment(data, (err) => {
     if (err) {
       res.redirect('/');
-    }
-    else {
+    } else {
       res.render('success');
     }
   });
