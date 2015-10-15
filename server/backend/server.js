@@ -11,14 +11,14 @@ const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
 var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
-  Performs a simple XOR encryption on passed String.
+  Performs a simple XOR encryption on passed Buffer.
   Returns encrypted Buffer with key appended.
 */
 var encryptResponse = (resp) => {
   const key = Math.floor((Math.random()*254)) + 1;
   var encrypted = [];
 
-  resp.forEach((val, idx) => encrypted.push(val ^ key));
+  resp.forEach((val) => encrypted.push(val ^ key));
   encrypted.push(key);
 
   return new Buffer(encrypted);
