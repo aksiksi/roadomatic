@@ -31,27 +31,60 @@ app.get('/', (req, res) => {
   res.render('index', {title: 'Hello!', roads: roads});
 });
 
-// Add a road segment to DB
+// Extract one or more Polygons from GeoJSON string
+var extractShapes = (geo, callback) => {
+  var shapes = [];
+
+  try {
+    const parsed = JSON.parse(geo);
+
+    // Find all Polygons
+    parsed.features.forEach((val) => {
+      shapes.push(val.geometry);
+    });
+
+    callback(null, shapes);
+  } catch (e) {
+    console.log(e);
+    callback(e, null);
+  }
+};
+
 app.post('/segment', (req, res) => {
-  const data = {
-    name: roads[req.body.name],
-    shape: JSON.parse(req.body.segment),
-    speed: parseInt(req.body.speed)
-  };
+  const road = {};
 
-  console.log(data);
+  try {
+    road.name = roads[req.body.name];
+    road.geo = req.body.segment;
+    road.speed = parseInt(req.body.speed);
+  } catch (e) {
+    res.render('error', {error: e});
+  }
 
-  writeSegment(data, (err) => {
+  extractShapes(road.geo, (err, shapes) => {
     if (err) {
-      res.redirect('/');
+      res.render('error', {error: 'Segment not formatted correctly.'});
+    } else if (shapes.length == 0) {
+      res.render('error', {error: 'No shapes found!'});
     } else {
-      res.render('success');
+      // Create an array of documents
+      const docs = shapes.map((shape) => {
+        return {name: road.name, shape: shape, speed: road.speed};
+      });
+
+      writeSegments(docs, (err) => {
+        if (err) {
+          res.render('error', {error: err});
+        } else {
+          res.render('success');
+        }
+      });
     }
   });
 });
 
-// Write a Segment to DB
-var writeSegment = (data, callback) => {
+// Write one or more road segments to DB
+var writeSegments = (data, callback) => {
   MongoClient.connect(config.db_url, (err, db) => {
     // Database offline
     if (err) {
@@ -59,28 +92,27 @@ var writeSegment = (data, callback) => {
       callback(err);
     } else {
       // Get road_id
-      db.collection(config.roads).findOne({name: data.name}, (err, road) => {
+      db.collection(config.roads).findOne({name: data[0].name}, (err, road) => {
         if (err || !road) {
+          console.log(err);
           db.close();
           callback(err);
         } else {
-          const segment = {
-            speed: data.speed,
-            road_id: road._id,
-            shape: data.shape
-          };
+          // Add road_id to each document
+          const docs = data.map((d) => {
+            return {speed: d.speed, road_id: road._id, shape: d.shape};
+          });
 
-          db.collection(config.segments).insertOne(segment, (err, res) => {
+          // Write documents to DB
+          db.collection(config.segments).insert(docs, (err, res) => {
+            db.close();
+
             if (err || !road) {
               console.log(err);
               callback(err);
-            }
-
-            else {
+            } else {
               callback();
             }
-
-            db.close();
           });
         }
       });
