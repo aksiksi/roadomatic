@@ -1,8 +1,0 @@
-.DS_Store
-node_modules/
-*.txt
-.gradle/
-.idea/
-local.properties
-.DS_Store
-build

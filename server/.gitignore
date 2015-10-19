@@ -1,0 +1,3 @@
+# .gitignore for Node server
+node_modules/
+*.txt
