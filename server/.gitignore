@@ -1,3 +1,4 @@
-# .gitignore for Node server
+# .gitignore for server
 node_modules/
 *.txt
+bin/
