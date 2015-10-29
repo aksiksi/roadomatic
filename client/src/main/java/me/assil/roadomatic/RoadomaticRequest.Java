@@ -1,7 +1,6 @@
-package com.ha.gp;
+package me.assil.roadomatic;
 
 import android.util.Log;
-import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,120 +9,90 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 
+public class RoadomaticRequest {
+    private DatagramSocket mSocket;
+    private InetAddress mHost;
+    private boolean mConnected = false;
 
+    private static final int TIMEOUT = 2000;
+    private static final int BUFFER_SIZE = 512;
 
-public class RoadomaticRequest implements Runnable {
+    // Server information
+    private static final String SERVER_IP = "188.166.68.166";
+    private static final int SERVER_PORT = 5151;
+    private static final boolean SERVER_ENCRYPT = false;
 
+    private static final String TAG = "RoadomaticRequest";
 
-
-
-    public TextView mSpeed ; // we use it to make the variable global
-    public TextView mName ; // we use it to make the variable global
-    public String request = "{\"lat\":24.200470,\"lng\": 55.669236}"; // Get The coordinates from the GPS ;
-    public DatagramSocket s;
-    public String IP = "188.166.68.166";
-
-
-
-
-    public void run () {
-        // TODO Auto-generated method stub
+    public RoadomaticRequest() {
         try {
+            // Open only one socket, set receive timeout
+            mSocket = new DatagramSocket();
+            mSocket.setSoTimeout(TIMEOUT);
 
+            mHost = InetAddress.getByName(SERVER_IP);
 
-send();
-
-
-recieve();
-
-
-
-
-
+            mConnected = true;
+        } catch (IOException e) {
+            Log.d(TAG, "Error creating socket, connection problem.");
         }
-
-        catch (Exception e) {
-
-        }
-
-
-
     }
 
+    public boolean isConnected() {
+        return mConnected;
+    }
 
+    public boolean send(String request) {
+        if (SERVER_ENCRYPT)
+            request = XOREncrypt.decrypt(request);
 
-
-    public void send() throws IOException {
-
-
-        // prepare a Socket and send it
-        s = new DatagramSocket();
-
-        int server_port = 5151;
-        InetAddress local = InetAddress.getByName(IP);
-        int msg_length = request.length();
+        int l = request.length();
         byte[] message = request.getBytes();
-        DatagramPacket p = new DatagramPacket(message, msg_length, local, server_port);
-        Log.d("testing1", "yes");
-        s.send(p);
+        DatagramPacket p = new DatagramPacket(message, l, mHost, SERVER_PORT);
 
+        boolean success = false;
 
+        try {
+            mSocket.send(p);
+            success = true;
+        } catch (IOException e) {
+            Log.d(TAG, "Failed to send packet. No connection?");
+        }
 
+        return success;
     }
 
+    public JSONObject receive() {
+        JSONObject resp = null;
 
+        // The receive buffer
+        byte[] buf = new byte[BUFFER_SIZE];
+        DatagramPacket p = new DatagramPacket(buf, buf.length);
 
-    public JSONObject recieve() throws IOException, JSONException {
+        try {
+            // Wait for TIMEOUT ms
+            mSocket.receive(p);
 
+            // Convert response to JSON, decrypt if needed
+            String s = new String(p.getData(), 0, p.getLength());
 
-        // The recieved socket
-        byte[] m = new byte[512]; // the recived packet length
-        DatagramPacket p1 = new DatagramPacket(m, m.length);
-        s.receive(p1);
+            if (SERVER_ENCRYPT)
+                s = XOREncrypt.decrypt(s);
 
-        String str = new String(p1.getData(), 0, p1.getLength());
-
-        Log.d("testing" , str);
-
-
-        // Convert it to JSON
-        JSONObject obj = new JSONObject(str); // to change the string that recieved to json.
-
-
-        String O = obj.getString("o"); // to extract the value of o from JSON
-        String F = obj.getString("f"); // to extract the value of f from JSON
-        String S = obj.getString("s"); // to extract the value of s from JSON
-        String N = obj.getString("n"); // to extract the value of n from JSON
-
-
-        // User interface
-
-        if (O.equals("1") && F.equals("1") )
-        {
-
-
-            mSpeed.setText(""+ S); // to set the speed text
-
-            mName.setText("" + N);// to set the Streetname text
-
-
-
+            resp = new JSONObject(s);
+        } catch (SocketTimeoutException e) {
+            Log.d(TAG, "Receive timed out!");
+        } catch (IOException e) {
+            Log.d(TAG, "Failed to receive packet, server offline!");
+        } catch (JSONException e) {
+            Log.d(TAG, "Error parsing received JSON.");
         }
-        if (O.equals("1") && F.equals("0") )
-        {
 
+        // Close socket
+        mSocket.close();
 
-            mSpeed.setText("None" ); // to set the speed text
-            mName.setText("Not Found");// to set the Streetname text
-
-
-        }
-return(obj);
-
+        return resp;
     }
-
-
-
-
 }
