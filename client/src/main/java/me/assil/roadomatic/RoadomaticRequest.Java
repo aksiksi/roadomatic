@@ -56,7 +56,7 @@ public class RoadomaticRequest {
 
     public JSONObject sendAndReceive(String request) {
         int i;
-        JSONObject resp;
+        JSONObject resp = null;
 
         // Keep retrying until send failure or received
         for (i = 0; i < RETRIES; i++) {
@@ -90,7 +90,7 @@ public class RoadomaticRequest {
     }
 
     public JSONObject receive() {
-        JSONObject resp;
+        JSONObject resp = null;
 
         // Receive packet
         DatagramPacket p = new DatagramPacket(mBuf, mBuf.length);

@@ -4,6 +4,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 public class RoadomaticActivity extends ActionBarActivity {
     // Referencing
-    RoadomaticUpdater updater;
-    ScheduledExecutorService pool;
-    ScheduledFuture task;
+    RoadomaticUpdater mUpdater;
+    ScheduledExecutorService mPool;
+    ScheduledFuture mTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,24 +27,27 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         // Referencing the RoadomaticUpdater class to a new Object with an input
         // where "this" refers to the activity
-        updater = new RoadomaticUpdater(text, this);
+        mUpdater = new RoadomaticUpdater(text, this);
 
         // Initializing the thread pool with 1 thread
-        pool = Executors.newScheduledThreadPool(1);
+        mPool = Executors.newScheduledThreadPool(1);
 
         // Execute the runnable at a fixed rate (once every three seconds)
-        task = pool.scheduleAtFixedRate(updater, 0, 3, TimeUnit.SECONDS);
+        mTask = mPool.scheduleAtFixedRate(mUpdater, 0, 3, TimeUnit.SECONDS);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
+        // Close socket
+        mUpdater.close();
+
         // Canceling the thread
-        task.cancel(true);
+        mTask.cancel(true);
 
         // Shutting down the thread pool
-        pool.shutdownNow();
+        mPool.shutdownNow();
     }
 
     @Override

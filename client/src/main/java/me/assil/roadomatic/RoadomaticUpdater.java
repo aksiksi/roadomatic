@@ -3,18 +3,25 @@ package me.assil.roadomatic;
 import android.app.Activity;
 import android.widget.TextView;
 
+import java.lang.Runnable;
+
 /**
  * Created by saeed_000 on 10/30/2015.
  */
-public class RoadomaticUpdater extends Runnable {
-    // Initializing a TextView element
+public class RoadomaticUpdater implements Runnable {
     TextView mText;
     Activity mActivity;
+    RoadomaticRequest mRequest;
 
     // Constructor to initialize the variables
     RoadomaticUpdater(TextView text, Activity activity){
         mText = text;
         mActivity = activity;
+        mRequest = new RoadomaticRequest();
+    }
+
+    public void close() {
+        mRequest.closeSocket();
     }
 
     public void run() {
@@ -38,5 +45,5 @@ public class RoadomaticUpdater extends Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-}}
+    }
+}
