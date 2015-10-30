@@ -7,27 +7,27 @@ import android.widget.TextView;
  * Created by saeed_000 on 10/30/2015.
  */
 public class RoadomaticUpdater extends Runnable {
-
-    //Initializing a TextView element
+    // Initializing a TextView element
     TextView mText;
     Activity mActivity;
 
-    //constructor to initialize the variables
+    // Constructor to initialize the variables
     RoadomaticUpdater(TextView text, Activity activity){
         mText = text;
         mActivity = activity;
     }
+
     public void run() {
         try {
-            //Check for connectivity
+            // Check for connectivity
 
-            //Get the GPS location
+            // Get the GPS location
 
-            //Send the request to the server
+            // Send the request to the server
 
-            //Get the street name and the speed
+            // Get the street name and the speed
 
-            //Update the UI
+            // Update the UI
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
