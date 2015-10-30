@@ -12,11 +12,15 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 
 public class RoadomaticRequest {
+    // Socket variables
     private DatagramSocket mSocket;
     private InetAddress mHost;
     private boolean mConnected = false;
 
-    private static final int TIMEOUT = 2000;
+    private byte[] mBuf; // Reusable receive buffer
+
+    private static final int TIMEOUT = 400; // Receive timeout
+    private static final int RETRIES = 5;   // Maximum number of retries
     private static final int BUFFER_SIZE = 512;
 
     // Server information
@@ -33,7 +37,9 @@ public class RoadomaticRequest {
             mSocket.setSoTimeout(TIMEOUT);
 
             mHost = InetAddress.getByName(SERVER_IP);
+            mBuf = new byte[BUFFER_SIZE];
 
+            // If above successful, socket connected
             mConnected = true;
         } catch (IOException e) {
             Log.d(TAG, "Error creating socket, connection problem.");
@@ -44,13 +50,32 @@ public class RoadomaticRequest {
         return mConnected;
     }
 
+    public void closeSocket() {
+        mSocket.close();
+    }
+
+    public JSONObject sendAndReceive(String request) {
+        int i;
+        JSONObject resp;
+
+        // Keep retrying until send failure or received
+        for (i = 0; i < RETRIES; i++) {
+            if (!this.send(request) || (resp = this.receive()) != null)
+                break;
+        }
+
+        mSocket.close();
+
+        return resp;
+    }
+
     public boolean send(String request) {
         if (SERVER_ENCRYPT)
             request = XOREncrypt.decrypt(request);
 
-        int l = request.length();
+        int length = request.length();
         byte[] message = request.getBytes();
-        DatagramPacket p = new DatagramPacket(message, l, mHost, SERVER_PORT);
+        DatagramPacket p = new DatagramPacket(message, length, mHost, SERVER_PORT);
 
         boolean success = false;
 
@@ -58,18 +83,17 @@ public class RoadomaticRequest {
             mSocket.send(p);
             success = true;
         } catch (IOException e) {
-            Log.d(TAG, "Failed to send packet. No connection?");
+            Log.d(TAG, "Failed to send packet!");
         }
 
         return success;
     }
 
     public JSONObject receive() {
-        JSONObject resp = null;
+        JSONObject resp;
 
-        // The receive buffer
-        byte[] buf = new byte[BUFFER_SIZE];
-        DatagramPacket p = new DatagramPacket(buf, buf.length);
+        // Receive packet
+        DatagramPacket p = new DatagramPacket(mBuf, mBuf.length);
 
         try {
             // Wait for TIMEOUT ms
@@ -89,9 +113,6 @@ public class RoadomaticRequest {
         } catch (JSONException e) {
             Log.d(TAG, "Error parsing received JSON.");
         }
-
-        // Close socket
-        mSocket.close();
 
         return resp;
     }
