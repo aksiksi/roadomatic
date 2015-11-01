@@ -69,7 +69,7 @@ public class RoadomaticRequest {
 
     public boolean send(String request) {
         if (SERVER_ENCRYPT)
-            request = XOREncrypt.decrypt(request);
+            request = XOREncrypt.encrypt(request);
 
         int length = request.length();
         byte[] message = request.getBytes();
