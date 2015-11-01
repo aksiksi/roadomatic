@@ -3,15 +3,20 @@ package main
 import (
   "fmt"
   "net"
+  "time"
   "bytes"
+  "math/rand"
   "encoding/json"
   "gopkg.in/mgo.v2"
   "gopkg.in/mgo.v2/bson"
 )
 
-// Configuration
+// Server config
 const PORT int = 5151
 const HOST string = "127.0.0.1"
+const ENCRYPT bool = false
+
+// Database config
 const MONGO_HOST string = "localhost"
 const MONGO_PORT int = 27017
 const MONGO_DBNAME string = "roadomatic"
@@ -47,6 +52,38 @@ type Segment struct {
 }
 
 /**
+  Given an encrypted request []byte, returns decrypted []byte
+*/
+func decrypt(req []byte) []byte {
+  l := len(req)
+  decrypted := req[:l-1]
+  key := req[l-1]
+
+  for i := 0; i < l; i++ {
+    decrypted[i] = req[i] ^ key
+  }
+
+  return decrypted
+}
+
+/**
+  Given a unencrypted response []byte, returns encrypted []byte
+*/
+func encrypt(resp []byte) []byte {
+  l := len(resp)
+  encrypted := make([]byte, l+1)
+
+  key := byte(rand.Intn(256))
+  encrypted[l-1] = key
+
+  for i, val := range resp {
+    encrypted[i] = val ^ key
+  }
+
+  return encrypted
+}
+
+/**
   Handles a single UDP connection as a goroutine
 */
 func udpHandler(buf []byte, b int, n int, conn *net.UDPConn, addr *net.UDPAddr) {
@@ -54,6 +91,11 @@ func udpHandler(buf []byte, b int, n int, conn *net.UDPConn, addr *net.UDPAddr) 
 
   // Slice buffer depending on read bytes, trim spaces
   clean := bytes.TrimSpace(buf[:b])
+
+  // Decrypt incoming request []byte
+  if ENCRYPT {
+    clean = decrypt(clean)
+  }
 
   // Parse the received JSON
   r := Request{}
@@ -69,6 +111,11 @@ func udpHandler(buf []byte, b int, n int, conn *net.UDPConn, addr *net.UDPAddr) 
   s, err := json.Marshal(&resp)
   if err != nil {
     panic(err)
+  }
+
+  // Encrypt response []byte
+  if ENCRYPT {
+    s = encrypt(s)
   }
 
   conn.WriteToUDP(s, addr)
@@ -142,14 +189,20 @@ func main() {
   }
   defer conn.Close()
 
-  // Connection number
-  var n int = 0
   fmt.Printf("Listening on %d...\n", PORT)
 
-  buf := make([]byte, 1024)
+  // Connection number
+  var n int = 0
+
+  // Setup a new Seed for this run
+  rand.Seed(time.Now().UTC().UnixNano())
 
   // Spawn a goroutine for each incoming UDP datagram
   for {
+    // Create a buffer for each request
+    buf := make([]byte, 1024)
+
+    // Read bytes into buffer
     b, addr, err := conn.ReadFromUDP(buf)
     if (err != nil) {
       panic(err)
