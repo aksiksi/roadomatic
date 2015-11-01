@@ -55,6 +55,10 @@ type Segment struct {
   Given an encrypted request []byte, returns decrypted []byte
 */
 func decrypt(req []byte) []byte {
+  if !ENCRYPT {
+    return req
+  }
+
   l := len(req)-1
   decrypted := req[:l]
   key := req[l]
@@ -70,6 +74,10 @@ func decrypt(req []byte) []byte {
   Given a unencrypted response []byte, returns encrypted []byte
 */
 func encrypt(resp []byte) []byte {
+  if !ENCRYPT {
+    return resp
+  }
+
   l := len(resp)
   encrypted := make([]byte, l+1)
 
@@ -93,9 +101,7 @@ func udpHandler(buf []byte, b int, n int, conn *net.UDPConn, addr *net.UDPAddr) 
   clean := bytes.TrimSpace(buf[:b])
 
   // Decrypt incoming request []byte
-  if ENCRYPT {
-    clean = decrypt(clean)
-  }
+  clean = decrypt(clean)
 
   // Parse the received JSON
   r := Request{}
@@ -114,9 +120,7 @@ func udpHandler(buf []byte, b int, n int, conn *net.UDPConn, addr *net.UDPAddr) 
   }
 
   // Encrypt response []byte
-  if ENCRYPT {
-    s = encrypt(s)
-  }
+  s = encrypt(s)
 
   conn.WriteToUDP(s, addr)
 }
