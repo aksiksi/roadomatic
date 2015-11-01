@@ -15,6 +15,9 @@ var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
   Returns encrypted Buffer with key appended
 */
 var encrypt = (resp) => {
+  if (!config.server_encrypt)
+    return resp;
+
   const key = Math.floor((Math.random()*254)) + 1;
   var encrypted = new Buffer(resp.length+1);
 
@@ -28,6 +31,9 @@ var encrypt = (resp) => {
   Returns the decrypted Buffer
 */
 var decrypt = (req) => {
+  if (!config.server_encrypt)
+    return req;
+
   var decrypted = new Buffer(req.length-1);
 
   // Retrieve key
@@ -118,17 +124,15 @@ var processRequest = (req, remote, socket) => {
 
     var b = new Buffer(JSON.stringify(short));
 
-    // Encrypt, if needed
-    if (config.server_encrypt)
-      b = encrypt(b);
+    // Encrypt response
+    b = encrypt(b);
 
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
 
   try {
     // Decrypt if necessary
-    if (config.server_encrypt)
-      req = decrypt(req);
+    req = decrypt(req);
 
     parsed = JSON.parse(req);
 
