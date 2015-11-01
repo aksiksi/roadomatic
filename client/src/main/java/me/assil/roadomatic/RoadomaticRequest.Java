@@ -64,8 +64,6 @@ public class RoadomaticRequest {
                 break;
         }
 
-        mSocket.close();
-
         return resp;
     }
 
