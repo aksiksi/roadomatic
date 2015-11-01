@@ -55,9 +55,9 @@ type Segment struct {
   Given an encrypted request []byte, returns decrypted []byte
 */
 func decrypt(req []byte) []byte {
-  l := len(req)
-  decrypted := req[:l-1]
-  key := req[l-1]
+  l := len(req)-1
+  decrypted := req[:l]
+  key := req[l]
 
   for i := 0; i < l; i++ {
     decrypted[i] = req[i] ^ key
@@ -73,7 +73,7 @@ func encrypt(resp []byte) []byte {
   l := len(resp)
   encrypted := make([]byte, l+1)
 
-  key := byte(rand.Intn(256))
+  key := byte(rand.Intn(255)+1) // 1-255
   encrypted[l-1] = key
 
   for i, val := range resp {
@@ -192,7 +192,7 @@ func main() {
   fmt.Printf("Listening on %d...\n", PORT)
 
   // Connection number
-  var n int = 0
+  n := 0
 
   // Setup a new Seed for this run
   rand.Seed(time.Now().UTC().UnixNano())
