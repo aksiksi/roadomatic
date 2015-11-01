@@ -11,17 +11,33 @@ const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
 var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
-  Performs a simple XOR encryption on passed Buffer.
-  Returns encrypted Buffer with key appended.
+  Performs a simple XOR encryption on passed Buffer
+  Returns encrypted Buffer with key appended
 */
-var encryptResponse = (resp) => {
+var encrypt = (resp) => {
   const key = Math.floor((Math.random()*254)) + 1;
-  var encrypted = [];
+  var encrypted = new Buffer(resp.length+1);
 
-  resp.forEach((val) => encrypted.push(val ^ key));
-  encrypted.push(key);
+  resp.forEach((val, i) => encrypted[i] = val ^ key);
 
-  return new Buffer(encrypted);
+  return encrypted;
+};
+
+/*
+  Decrypts passed Buffer using appended XOR key
+  Returns the decrypted Buffer
+*/
+var decrypt = (req) => {
+  var decrypted = new Buffer(req.length-1);
+
+  // Retrieve key
+  const key = req[req.length-1];
+
+  for (var i = 0; i < decrypted.length; i++)
+    decrypted[i] = req[i] ^ key;
+
+  // Return decrypted Buffer
+  return decrypted;
 };
 
 /*
@@ -103,14 +119,17 @@ var processRequest = (req, remote, socket) => {
     var b = new Buffer(JSON.stringify(short));
 
     // Encrypt, if needed
-    if (config.server_encrypt) {
-      b = encryptResponse(b);
-    }
+    if (config.server_encrypt)
+      b = encrypt(b);
 
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
 
   try {
+    // Decrypt if necessary
+    if (config.server_encrypt)
+      req = decrypt(req);
+
     parsed = JSON.parse(req);
 
     // Check for correct params
@@ -118,7 +137,7 @@ var processRequest = (req, remote, socket) => {
       throw Error();
     }
   } catch (e) {
-    console.log(e.message);
+    console.log(e.stack);
     valid = false;
   }
 
