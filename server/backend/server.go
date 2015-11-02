@@ -78,8 +78,8 @@ func encrypt(resp []byte) []byte {
     return resp
   }
 
-  l := len(resp)
-  encrypted := make([]byte, l+1)
+  l := len(resp)+1
+  encrypted := make([]byte, l)
 
   key := byte(rand.Intn(255)+1) // 1-255
   encrypted[l-1] = key
