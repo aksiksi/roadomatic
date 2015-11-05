@@ -16,6 +16,10 @@ public class RoadomaticActivity extends ActionBarActivity {
     RoadomaticUpdater mUpdater;
     ScheduledExecutorService mPool;
     ScheduledFuture mTask;
+    
+    public TextView mSpeed = (TextView) findViewById(R.id.Speed); // to change the text view
+    public TextView mName = (TextView) findViewById(R.id.StreetName); // to change the text view
+    public TextView mTime = (TextView) findViewById(R.id.UpdateTime); // to change the text view
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
