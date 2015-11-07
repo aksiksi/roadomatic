@@ -1,5 +1,8 @@
 package me.assil.roadomatic;
 
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -18,6 +21,29 @@ public class RoadomaticActivity extends ActionBarActivity {
     ScheduledFuture mTask;
 
     public TextView mSpeed;
+
+    public class MyLocationListener implements LocationListener {
+
+        public double mLat = -1;
+        public double mLng = -1;
+
+        @Override
+        public void onLocationChanged(Location loc) {
+
+            mLat = loc.getLatitude();
+            mLng = loc.getLongitude();
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {}
+
+        @Override
+        public void onProviderEnabled(String provider) {}
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+    }
     
 //    public TextView mSpeed = ; // to change the text view
 //    public TextView mName = (TextView) findViewById(R.id.StreetName); // to change the text view
@@ -30,12 +56,13 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         mSpeed = (TextView) findViewById(R.id.Speed);
 
-        // Referencing the text view and declaring it by an id
-        TextView text = (TextView) findViewById(R.id.text); // Test id
+        LocationManager m = (LocationManager) getSystemService(RoadomaticActivity.LOCATION_SERVICE);
+        MyLocationListener l = new MyLocationListener();
+        m.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, l);
 
         // Referencing the RoadomaticUpdater class to a new Object with an input
         // where "this" refers to the activity
-        mUpdater = new RoadomaticUpdater(text, this);
+        mUpdater = new RoadomaticUpdater(mSpeed, this, l);
 
         // Initializing the thread pool with 1 thread
         mPool = Executors.newScheduledThreadPool(1);

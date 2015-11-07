@@ -23,15 +23,17 @@ public class RoadomaticUpdater implements Runnable {
     TextView mText;
     Activity mActivity;
     RoadomaticRequest mRequest;
+    RoadomaticActivity.MyLocationListener mListener;
 	
 	double lat = -1;
 	double lng = -1;
 
     // Constructor to initialize the variables
-    RoadomaticUpdater(TextView text, Activity activity){
+    public RoadomaticUpdater(TextView text, Activity activity, RoadomaticActivity.MyLocationListener l) {
         mText = text;
         mActivity = activity;
         mRequest = new RoadomaticRequest();
+        mListener = l;
     }
 
     public void close() {
@@ -46,48 +48,30 @@ public class RoadomaticUpdater implements Runnable {
 	}
 	
 	/*---------- Listener class to get coordinates ------------- */
-	private class MyLocationListener implements LocationListener {
-
-		@Override
-		public void onLocationChanged(Location loc) {
-
-			lat = loc.getLatitude();
-			lng = loc.getLongitude();
-
-		}
-
-    @Override
-    public void onProviderDisabled(String provider) {}
-
-    @Override
-    public void onProviderEnabled(String provider) {}
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {}
-	}
-
-
 
     public void run() {
         try {
             // Check for connectivity
 			boolean x = isNetworkAvailable();
-			if(!x)
+
+            if (!x)
 				return;
 
-            // Get the GPS location
-			if (lat == -1)
-				return;
+            lat = mListener.mLat;
+            lng = mListener.mLng;
+
+            if (lat == -1)
+                return;
 			
 			Log.d("MAIN", lat + "");
 			
 			// {"lat": lat, "lng": lng}
-			String s = "{\"lat\": " + lat + "," + "{\"lng\":" + lng + "}";
+			String s = "{\"lat\": " + lat + "," + "\"lng\":" + lng + "}";
 			
 			Log.d("MAIN", s);
 			
 			RoadomaticRequest req = new RoadomaticRequest();
-			JSONObject resp = req.sendAndReceive(s);
+			final JSONObject resp = req.sendAndReceive(s);
 			
 			if (resp == null) {
 				Log.d("MAIN", "Server is offline");
@@ -97,6 +81,7 @@ public class RoadomaticUpdater implements Runnable {
 			// {"o": 1, "f": 1, "n": "Shei..", "s": 80}
 			
 			Log.d("MAIN", resp.getInt("s") +"");
+            final int speed= resp.getInt("s");
 
             // Send the request to the server
 
@@ -106,7 +91,7 @@ public class RoadomaticUpdater implements Runnable {
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mText.setText("THE UPDATED SPEED");
+                    mText.setText(speed + "");
                 }
             });
 
