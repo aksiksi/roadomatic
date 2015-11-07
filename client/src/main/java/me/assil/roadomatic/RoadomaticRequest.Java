@@ -19,8 +19,8 @@ public class RoadomaticRequest {
 
     private byte[] mBuf; // Reusable receive buffer
 
-    private static final int TIMEOUT = 400; // Receive timeout
-    private static final int RETRIES = 5;   // Maximum number of retries
+    private static final int TIMEOUT = 1000; // Receive timeout
+    private static final int RETRIES = 2;   // Maximum number of retries
     private static final int BUFFER_SIZE = 512;
 
     // Server information

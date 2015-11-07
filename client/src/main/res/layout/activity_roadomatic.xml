@@ -11,7 +11,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/SpeedSign"
-        android:src="@drawable/speedsign"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
@@ -19,7 +18,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/Update"
         android:id="@+id/UpdateTime"
         android:textSize="15dp"
         android:textColor="#010000"
@@ -31,7 +29,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/streetname"
         android:id="@+id/StreetName"
         android:textSize="20dp"
         android:textColor="#010000"
@@ -42,7 +39,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/speed"
         android:id="@+id/Speed"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
