@@ -1,27 +1,27 @@
 // Imports
-const dgram = require('dgram');
-const util = require('util');
-const MongoClient = require('mongodb').MongoClient;
+var dgram = require('dgram');
+var util = require('util');
+var MongoClient = require('mongodb').MongoClient;
 const denodeify = require('denodeify');
 const denodeifyMethod = (object, method) => denodeify(object[method].bind(object));
 
 // Load configuration
-const config = require('../config.js');
+var config = require('../config.js');
 
 // Default Response object
 const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
-const newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
+var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
   Performs a simple XOR encryption on passed Buffer
   Returns encrypted Buffer with key appended
 */
-const encrypt = (resp) => {
+var encrypt = (resp) => {
   if (!config.server_encrypt)
     return resp;
 
   const key = Math.floor((Math.random()*254)) + 1;
-  const encrypted = new Buffer(resp.length+1);
+  var encrypted = new Buffer(resp.length+1);
 
   resp.forEach((val, i) => encrypted[i] = val ^ key);
 
@@ -32,16 +32,16 @@ const encrypt = (resp) => {
   Decrypts passed Buffer using appended XOR key
   Returns the decrypted Buffer
 */
-const decrypt = (req) => {
+var decrypt = (req) => {
   if (!config.server_encrypt)
     return req;
 
-  const decrypted = new Buffer(req.length-1);
+  var decrypted = new Buffer(req.length-1);
 
   // Retrieve key
   const key = req[req.length-1];
 
-  for (const i = 0; i < decrypted.length; i++)
+  for (var i = 0; i < decrypted.length; i++)
     decrypted[i] = req[i] ^ key;
 
   // Return decrypted Buffer
@@ -106,20 +106,20 @@ const findRoad = ({lat, lng}, db) => {
 /*
   UDP connection handler.
 */
-const processRequest = (req, remote, socket) => {
-  const parsed;
-  const valid = true;
+var processRequest = (req, remote, socket) => {
+  var parsed;
+  var valid = true;
 
-  const sendResponse = resp => {
+  var sendResponse = resp => {
     // Shorten response keys to save 16 bytes
-    const short = {
+    var short = {
       o: resp.online,
       f: resp.found,
       s: resp.speed,
       n: resp.name
     };
 
-    const b = new Buffer(JSON.stringify(short));
+    var b = new Buffer(JSON.stringify(short));
 
     // Encrypt response
     b = encrypt(b);
@@ -146,7 +146,7 @@ const processRequest = (req, remote, socket) => {
     MongoClient.connect(config.db_url, (err, db) => {
       if (err) {
         // Database offline
-        const resp = newResponse();
+        var resp = newResponse();
         resp.online = 0;
         sendResponse(resp);
         db.close();
@@ -161,8 +161,8 @@ const processRequest = (req, remote, socket) => {
 };
 
 // UDP server
-const socket = dgram.createSocket('udp4');
-const c = 0;
+var socket = dgram.createSocket('udp4');
+var c = 0;
 
 socket.bind(config.server_port, config.server_host);
 
