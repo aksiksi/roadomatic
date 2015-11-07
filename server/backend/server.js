@@ -1,25 +1,27 @@
 // Imports
-var dgram = require('dgram');
-var util = require('util');
-var MongoClient = require('mongodb').MongoClient;
+const dgram = require('dgram');
+const util = require('util');
+const MongoClient = require('mongodb').MongoClient;
+const denodeify = require('denodeify');
+const denodeifyMethod = (object, method) => denodeify(object[method].bind(object));
 
 // Load configuration
-var config = require('../config.js');
+const config = require('../config.js');
 
 // Default Response object
 const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
-var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
+const newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
   Performs a simple XOR encryption on passed Buffer
   Returns encrypted Buffer with key appended
 */
-var encrypt = (resp) => {
+const encrypt = (resp) => {
   if (!config.server_encrypt)
     return resp;
 
   const key = Math.floor((Math.random()*254)) + 1;
-  var encrypted = new Buffer(resp.length+1);
+  const encrypted = new Buffer(resp.length+1);
 
   resp.forEach((val, i) => encrypted[i] = val ^ key);
 
@@ -30,16 +32,16 @@ var encrypt = (resp) => {
   Decrypts passed Buffer using appended XOR key
   Returns the decrypted Buffer
 */
-var decrypt = (req) => {
+const decrypt = (req) => {
   if (!config.server_encrypt)
     return req;
 
-  var decrypted = new Buffer(req.length-1);
+  const decrypted = new Buffer(req.length-1);
 
   // Retrieve key
   const key = req[req.length-1];
 
-  for (var i = 0; i < decrypted.length; i++)
+  for (const i = 0; i < decrypted.length; i++)
     decrypted[i] = req[i] ^ key;
 
   // Return decrypted Buffer
@@ -52,18 +54,14 @@ var decrypt = (req) => {
   1. Queries `segments` collection to find the road the coordinate lies on.
   2. If matched, queries `roads` collection to determine road name.
 
-  Returns a Response object.
+  Returns a Promise wrapped Response object.
 */
-var findRoad = (parsed, db, callback) => {
-  const resp = newResponse();
-
+const findRoad = ({lat, lng}, db) => {
   // GeoJSON coordinate representation
   const loc = {
     type: 'Point',
-    coordinates: [parsed.lng, parsed.lat]
+    coordinates: [lng, lat]
   };
-
-  var segments = db.collection(config.segments);
 
   // Perform query on SEGMENTS collection
   // Find the road segment that contains Point `loc`
@@ -75,54 +73,53 @@ var findRoad = (parsed, db, callback) => {
     }
   };
 
-  segments.findOne(q, {speed: 1, road_id: 1, _id: 0}, (err, segment) => {
-    if (err) {
-      // Collection read error
-      console.log(err);
-      resp.online = 0;
-      callback(resp);
-    } else if (!segment) {
-      // No segment match!
-      callback(resp);
+  const resp = newResponse();
+  const segments = db.collection(config.segments);
+  const findOneSegment = denodeifyMethod(segments, 'findOne');
+
+  return findOneSegment(q, {speed: 1, road_id: 1, _id: 0})
+  .then({road_id, speed} => {
+    if (!segment) {
+      return resp;
     } else {
-      // Segment match!
-      var roads = db.collection(config.roads);
-
-      // Find road name using road_id
-      roads.findOne({_id: segment.road_id}, (err, road) => {
-        if (err || !road) {
-          // Read error, return what we have
-          console.log(err);
-          resp.name = "";
-        } else {
-          resp.found = 1;
-          resp.speed = segment.speed;
-          resp.name = road.name;
-        }
-
-        callback(resp);
-      });
+      const roads = db.collection(config.roads);
+      const findOneRoad = denodeifyMethod(roads, 'findOne');
+      return findOneRoad({_id: road_id})
+      .then(road => {
+        resp.found = 1;
+        resp.speed = speed;
+        resp.name = road.name;
+        return resp;
+      })
+      .catch(err => {
+        resp.name = "";
+        return resp;
+      }
     }
+  })
+  .catch(err => {
+    resp.online = 0;
+    return resp;
   });
 };
 
 /*
   UDP connection handler.
 */
-var processRequest = (req, remote, socket) => {
-  var parsed;
-  var valid = true;
+const processRequest = (req, remote, socket) => {
+  const parsed;
+  const valid = true;
 
-  var sendResponse = resp => {
+  const sendResponse = resp => {
     // Shorten response keys to save 16 bytes
-    var short = {
+    const short = {
       o: resp.online,
       f: resp.found,
       s: resp.speed,
       n: resp.name
     };
 
-    var b = new Buffer(JSON.stringify(short));
+    const b = new Buffer(JSON.stringify(short));
 
     // Encrypt response
     b = encrypt(b);
@@ -149,7 +146,7 @@ var processRequest = (req, remote, socket) => {
     MongoClient.connect(config.db_url, (err, db) => {
       if (err) {
         // Database offline
-        var resp = newResponse();
+        const resp = newResponse();
         resp.online = 0;
         sendResponse(resp);
         db.close();
@@ -164,8 +161,8 @@ var processRequest = (req, remote, socket) => {
 };
 
 // UDP server
-var socket = dgram.createSocket('udp4');
-var c = 0;
+const socket = dgram.createSocket('udp4');
+const c = 0;
 
 socket.bind(config.server_port, config.server_host);
 
