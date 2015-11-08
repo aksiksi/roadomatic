@@ -8,7 +8,7 @@ config.segments = 'segments';
 // UDP server configuration
 config.server_host = '0.0.0.0';
 config.server_port = 5151;
-config.server_encrypt = true;
+config.server_encrypt = false;
 
 // Frontend app configuration
 config.frontend_host = '0.0.0.0';
