@@ -2,9 +2,9 @@
     <string name="app_name">Roadomatic</string>
 
     <string name="action_settings">Settings</string>
-    <string name="speed">100</string>
-    <string name="streetname">Sheikh Khalifa Road</string>
-    <string name="Update">Last updated: 30 seconds ago</string>
+    <string name="speed"></string>
+    <string name="streetname"></string>
+    <string name="Update"></string>
 
 
 </resources>
