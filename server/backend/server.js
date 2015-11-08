@@ -1,22 +1,24 @@
 // Imports
-var dgram = require('dgram');
-var util = require('util');
-var MongoClient = require('mongodb').MongoClient;
+const dgram = require('dgram');
+const util = require('util');
+const MongoClient = require('mongodb').MongoClient;
 const denodeify = require('denodeify');
-const denodeifyMethod = (object, method) => denodeify(object[method].bind(object));
 
 // Load configuration
-var config = require('../config.js');
+const config = require('../config.js');
+
+// Denodeify shortcut
+const denodeifyMethod = (object, method) => denodeify(object[method].bind(object));
 
 // Default Response object
-const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
-var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
+const RESPONSE = {online: 1, found: 0, speed: -1, name: ''};
+const newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
   Performs a simple XOR encryption on passed Buffer
   Returns encrypted Buffer with key appended
 */
-var encrypt = (resp) => {
+const encrypt = (resp) => {
   if (!config.server_encrypt)
     return resp;
 
@@ -32,7 +34,7 @@ var encrypt = (resp) => {
   Decrypts passed Buffer using appended XOR key
   Returns the decrypted Buffer
 */
-var decrypt = (req) => {
+const decrypt = (req) => {
   if (!config.server_encrypt)
     return req;
 
@@ -56,11 +58,11 @@ var decrypt = (req) => {
 
   Returns a Promise wrapped Response object.
 */
-const findRoad = ({lat, lng}, db) => {
+const findRoad = (parsed, db) => {
   // GeoJSON coordinate representation
   const loc = {
     type: 'Point',
-    coordinates: [lng, lat]
+    coordinates: [parsed.lng, parsed.lat]
   };
 
   // Perform query on SEGMENTS collection
@@ -78,12 +80,13 @@ const findRoad = ({lat, lng}, db) => {
   const findOneSegment = denodeifyMethod(segments, 'findOne');
 
   return findOneSegment(q, {speed: 1, road_id: 1, _id: 0})
-  .then({road_id, speed} => {
+  .then(segment => {
     if (!segment) {
       return resp;
     } else {
       const roads = db.collection(config.roads);
       const findOneRoad = denodeifyMethod(roads, 'findOne');
+
       return findOneRoad({_id: road_id})
       .then(road => {
         resp.found = 1;
@@ -92,9 +95,9 @@ const findRoad = ({lat, lng}, db) => {
         return resp;
       })
       .catch(err => {
-        resp.name = "";
+        resp.name = '';
         return resp;
-      }
+      });
     }
   })
   .catch(err => {
@@ -106,7 +109,7 @@ const findRoad = ({lat, lng}, db) => {
 /*
   UDP connection handler.
 */
-var processRequest = (req, remote, socket) => {
+const processRequest = (req, remote, socket) => {
   var parsed;
   var valid = true;
 
@@ -151,7 +154,9 @@ var processRequest = (req, remote, socket) => {
         sendResponse(resp);
         db.close();
       } else {
-        findRoad(parsed, db, resp => {
+        // Consume the returned Promise
+        findRoad(parsed, db)
+        .then(resp => {
           sendResponse(resp);
           db.close();
         });
@@ -161,7 +166,7 @@ var processRequest = (req, remote, socket) => {
 };
 
 // UDP server
-var socket = dgram.createSocket('udp4');
+const socket = dgram.createSocket('udp4');
 var c = 0;
 
 socket.bind(config.server_port, config.server_host);
