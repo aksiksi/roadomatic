@@ -1,0 +1,92 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:foregroundGravity="bottom"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFFF"
+        android:orientation="vertical" >
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="162dp"
+        android:layout_height="154dp"
+        android:id="@+id/SpeedSign"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/speedsign"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/Speed"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="20dp"
+        android:layout_gravity="center"
+        android:text="speed" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/StreetName"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="20dp"
+        android:text="Street Name"
+        android:layout_gravity="center|top" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/Update"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="15dp"
+        android:text="last updated Time"
+        android:layout_gravity="center_horizontal|bottom" />
+
+    <ImageView
+        android:layout_width="106dp"
+        android:layout_height="107dp"
+        android:id="@+id/Silent"
+        android:layout_gravity="left|bottom"
+        android:src="@drawable/silent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp" />
+
+    <ImageView
+        android:layout_width="124dp"
+        android:layout_height="98dp"
+        android:id="@+id/Mousque"
+        android:layout_gravity="left|top"
+        android:src="@drawable/Mousque" />
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="101dp"
+        android:id="@+id/Airport"
+        android:layout_gravity="right|bottom"
+        android:src="@drawable/airport"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp" />
+
+    <ImageView
+        android:layout_width="125dp"
+        android:layout_height="137dp"
+        android:id="@+id/School"
+        android:layout_gravity="right|top"
+        android:src="@drawable/school"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp" />
+
+
+</FrameLayout>
