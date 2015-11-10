@@ -23,7 +23,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var roads = {
-  r1: 'Khalifa Bin Zayed Street'
+  r1: 'Khalifa Bin Zayed Street',
+  r2: 'Test Street'
 };
 
 // Index route

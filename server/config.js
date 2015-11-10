@@ -12,7 +12,7 @@ config.server_encrypt = false;
 
 // Frontend app configuration
 config.frontend_host = '0.0.0.0';
-config.frontend_port = 5152;
+config.frontend_port = 80;
 config.static_dir = 'static';
 config.views_dir = 'views';
 
