@@ -1,20 +1,24 @@
 // Imports
-var dgram = require('dgram');
-var util = require('util');
-var MongoClient = require('mongodb').MongoClient;
+const dgram = require('dgram');
+const util = require('util');
+const MongoClient = require('mongodb').MongoClient;
+const denodeify = require('denodeify');
 
 // Load configuration
-var config = require('../config.js');
+const config = require('../config.js');
+
+// Denodeify shortcut
+const denodeifyMethod = (object, method) => denodeify(object[method].bind(object));
 
 // Default Response object
-const RESPONSE = {online: 1, found: 0, speed: -1, name: ""};
-var newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
+const RESPONSE = {online: 1, found: 0, speed: -1, name: ''};
+const newResponse = () => JSON.parse(JSON.stringify(RESPONSE));
 
 /*
   Performs a simple XOR encryption on passed Buffer
   Returns encrypted Buffer with key appended
 */
-var encrypt = (resp) => {
+const encrypt = (resp) => {
   if (!config.server_encrypt)
     return resp;
 
@@ -30,7 +34,7 @@ var encrypt = (resp) => {
   Decrypts passed Buffer using appended XOR key
   Returns the decrypted Buffer
 */
-var decrypt = (req) => {
+const decrypt = (req) => {
   if (!config.server_encrypt)
     return req;
 
@@ -52,18 +56,14 @@ var decrypt = (req) => {
   1. Queries `segments` collection to find the road the coordinate lies on.
   2. If matched, queries `roads` collection to determine road name.
 
-  Returns a Response object.
+  Returns a Promise wrapped Response object.
 */
-var findRoad = (parsed, db, callback) => {
-  const resp = newResponse();
-
+const findRoad = (parsed, db) => {
   // GeoJSON coordinate representation
   const loc = {
     type: 'Point',
     coordinates: [parsed.lng, parsed.lat]
   };
-
-  var segments = db.collection(config.segments);
 
   // Perform query on SEGMENTS collection
   // Find the road segment that contains Point `loc`
@@ -75,41 +75,43 @@ var findRoad = (parsed, db, callback) => {
     }
   };
 
-  segments.findOne(q, {speed: 1, road_id: 1, _id: 0}, (err, segment) => {
-    if (err) {
-      // Collection read error
-      console.log(err);
-      resp.online = 0;
-      callback(resp);
-    } else if (!segment) {
-      // No segment match!
-      callback(resp);
+  const resp = newResponse();
+  const segments = db.collection(config.segments);
+  const findOneSegment = denodeifyMethod(segments, 'findOne');
+
+  return findOneSegment(q, {speed: 1, road_id: 1, _id: 0})
+  .then(segment => {
+    if (!segment) {
+      return resp;
     } else {
-      // Segment match!
-      var roads = db.collection(config.roads);
+      const roads = db.collection(config.roads);
+      const findOneRoad = denodeifyMethod(roads, 'findOne');
 
-      // Find road name using road_id
-      roads.findOne({_id: segment.road_id}, (err, road) => {
-        if (err || !road) {
-          // Read error, return what we have
-          console.log(err);
-          resp.name = "";
-        } else {
-          resp.found = 1;
-          resp.speed = segment.speed;
-          resp.name = road.name;
-        }
-
-        callback(resp);
+      return findOneRoad({_id: segment.road_id})
+      .then(road => {
+        resp.found = 1;
+        resp.speed = segment.speed;
+        resp.name = road.name;
+        return resp;
+      })
+      .catch(err => {
+        console.log(err);
+        resp.name = '';
+        return resp;
       });
     }
+  })
+  .catch(err => {
+    console.log(err);
+    resp.online = 0;
+    return resp;
   });
 };
 
 /*
   UDP connection handler.
 */
-var processRequest = (req, remote, socket) => {
+const processRequest = (req, remote, socket) => {
   var parsed;
   var valid = true;
 
@@ -154,7 +156,9 @@ var processRequest = (req, remote, socket) => {
         sendResponse(resp);
         db.close();
       } else {
-        findRoad(parsed, db, resp => {
+        // Consume the returned Promise
+        findRoad(parsed, db)
+        .then(resp => {
           sendResponse(resp);
           db.close();
         });
@@ -164,7 +168,7 @@ var processRequest = (req, remote, socket) => {
 };
 
 // UDP server
-var socket = dgram.createSocket('udp4');
+const socket = dgram.createSocket('udp4');
 var c = 0;
 
 socket.bind(config.server_port, config.server_host);
