@@ -87,20 +87,22 @@ const findRoad = (parsed, db) => {
       const roads = db.collection(config.roads);
       const findOneRoad = denodeifyMethod(roads, 'findOne');
 
-      return findOneRoad({_id: road_id})
+      return findOneRoad({_id: segment.road_id})
       .then(road => {
         resp.found = 1;
-        resp.speed = speed;
+        resp.speed = segment.speed;
         resp.name = road.name;
         return resp;
       })
       .catch(err => {
+        console.log(err);
         resp.name = '';
         return resp;
       });
     }
   })
   .catch(err => {
+    console.log(err);
     resp.online = 0;
     return resp;
   });
