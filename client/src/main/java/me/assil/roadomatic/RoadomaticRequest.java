@@ -41,7 +41,7 @@ public class RoadomaticRequest {
 
             // If above successful, socket connected
             mConnected = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d(TAG, "Error creating socket, connection problem.");
         }
     }
