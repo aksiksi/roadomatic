@@ -83,10 +83,6 @@ public class RoadomaticUpdater implements Runnable {
 			Log.d("MAIN", resp.getInt("s") +"");
             final int speed= resp.getInt("s");
 
-            // Send the request to the server
-
-            // Get the street name and the speed
-
             // Update the UI
             mActivity.runOnUiThread(new Runnable() {
                 @Override
