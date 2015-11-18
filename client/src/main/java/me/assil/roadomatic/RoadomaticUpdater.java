@@ -24,9 +24,6 @@ public class RoadomaticUpdater implements Runnable {
     Activity mActivity;
     RoadomaticRequest mRequest;
     RoadomaticActivity.MyLocationListener mListener;
-	
-	double lat = -1;
-	double lng = -1;
 
     // Constructor to initialize the variables
     public RoadomaticUpdater(TextView text, Activity activity, RoadomaticActivity.MyLocationListener l) {
@@ -39,49 +36,47 @@ public class RoadomaticUpdater implements Runnable {
     public void close() {
         mRequest.closeSocket();
     }
-	
-	private boolean isNetworkAvailable() {
-		ConnectivityManager connectivityManager
-			  = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-	}
-	
-	/*---------- Listener class to get coordinates ------------- */
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+              = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
     public void run() {
         try {
             // Check for connectivity
-			boolean x = isNetworkAvailable();
+            boolean x = isNetworkAvailable();
 
             if (!x)
-				return;
+                return;
 
-            lat = mListener.mLat;
-            lng = mListener.mLng;
+            double lat = mListener.mLat;
+            double lng = mListener.mLng;
 
             if (lat == -1)
                 return;
-			
-			Log.d("MAIN", lat + "");
-			
-			// {"lat": lat, "lng": lng}
-			String s = "{\"lat\": " + lat + "," + "\"lng\":" + lng + "}";
-			
-			Log.d("MAIN", s);
-			
-			RoadomaticRequest req = new RoadomaticRequest();
-			final JSONObject resp = req.sendAndReceive(s);
-			
-			if (resp == null) {
-				Log.d("MAIN", "Server is offline");
-				return;
-			}
-			
-			// {"o": 1, "f": 1, "n": "Shei..", "s": 80}
-			
-			Log.d("MAIN", resp.getInt("s") +"");
-            final int speed= resp.getInt("s");
+
+            Log.d("MAIN", lat + "");
+
+            // {"lat": lat, "lng": lng}
+            String s = "{\"lat\":" + lat + "," + "\"lng\":" + lng + "}";
+
+            Log.d("MAIN", s);
+
+            JSONObject resp = mReq.sendAndReceive(s);
+
+            if (resp == null) {
+                Log.d("MAIN", "Server is offline");
+                return;
+            }
+
+            // {"o": 1, "f": 1, "n": "Shei..", "s": 80}
+
+            Log.d("MAIN", resp.getInt("s") + "");
+
+            final int speed = resp.getInt("s");
 
             // Update the UI
             mActivity.runOnUiThread(new Runnable() {

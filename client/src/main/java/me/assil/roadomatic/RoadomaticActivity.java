@@ -23,16 +23,13 @@ public class RoadomaticActivity extends ActionBarActivity {
     public TextView mSpeed;
 
     public class MyLocationListener implements LocationListener {
-
         public double mLat = -1;
         public double mLng = -1;
 
         @Override
         public void onLocationChanged(Location loc) {
-
             mLat = loc.getLatitude();
             mLng = loc.getLongitude();
-
         }
 
         @Override
@@ -44,7 +41,7 @@ public class RoadomaticActivity extends ActionBarActivity {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     }
-    
+
 //    public TextView mSpeed = ; // to change the text view
 //    public TextView mName = (TextView) findViewById(R.id.StreetName); // to change the text view
 //    public TextView mTime = (TextView) findViewById(R.id.UpdateTime); // to change the text view
@@ -56,6 +53,7 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         mSpeed = (TextView) findViewById(R.id.Speed);
 
+        // GPS setup
         LocationManager m = (LocationManager) getSystemService(RoadomaticActivity.LOCATION_SERVICE);
         MyLocationListener l = new MyLocationListener();
         m.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, l);
