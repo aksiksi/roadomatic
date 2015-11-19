@@ -115,6 +115,21 @@ const processRequest = (req, remote, socket) => {
   var parsed;
   var valid = true;
 
+  try {
+    // Decrypt if necessary
+    req = decrypt(req);
+
+    parsed = JSON.parse(req);
+
+    // Check for correct params
+    if (!parsed.lat || !parsed.lng) {
+      throw Error();
+    }
+  } catch (e) {
+    console.log(e.stack);
+    valid = false;
+  }
+
   var sendResponse = resp => {
     // Shorten response keys to save 16 bytes
     var short = {
@@ -131,21 +146,6 @@ const processRequest = (req, remote, socket) => {
 
     socket.send(b, 0, b.length, remote.port, remote.address);
   };
-
-  try {
-    // Decrypt if necessary
-    req = decrypt(req);
-
-    parsed = JSON.parse(req);
-
-    // Check for correct params
-    if (!parsed.lat || !parsed.lng) {
-      throw Error();
-    }
-  } catch (e) {
-    console.log(e.stack);
-    valid = false;
-  }
 
   if (valid) {
     MongoClient.connect(config.db_url, (err, db) => {
