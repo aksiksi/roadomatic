@@ -14,7 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class RoadomaticActivity extends ActionBarActivity {
+public class RoadomaticActivity_v2 extends ActionBarActivity {
     // Referencing
     RoadomaticUpdater mUpdater;
     ScheduledExecutorService mPool;
