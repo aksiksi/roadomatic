@@ -42,14 +42,10 @@ public class RoadomaticActivity extends ActionBarActivity {
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     }
 
-//    public TextView mSpeed = ; // to change the text view
-//    public TextView mName = (TextView) findViewById(R.id.StreetName); // to change the text view
-//    public TextView mTime = (TextView) findViewById(R.id.UpdateTime); // to change the text view
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_roadomatic);
+        setContentView(R.layout.activity_roadomatic_v2);
 
         mSpeed = (TextView) findViewById(R.id.Speed);
 
