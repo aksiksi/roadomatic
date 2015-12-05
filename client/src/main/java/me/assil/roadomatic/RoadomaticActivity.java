@@ -53,7 +53,7 @@ public class RoadomaticActivity extends ActionBarActivity {
         // GPS setup
         LocationManager m = (LocationManager) getSystemService(RoadomaticActivity.LOCATION_SERVICE);
         MyLocationListener l = new MyLocationListener();
-        m.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, l);
+        m.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, l);
 
         // Referencing the RoadomaticUpdater class to a new Object with an input
         // where "this" refers to the activity
@@ -63,7 +63,7 @@ public class RoadomaticActivity extends ActionBarActivity {
         mPool = Executors.newScheduledThreadPool(1);
 
         // Execute the runnable at a fixed rate (once every three seconds)
-        mTask = mPool.scheduleAtFixedRate(mUpdater, 0, 3, TimeUnit.SECONDS);
+        mTask = mPool.scheduleAtFixedRate(mUpdater, 0, 10, TimeUnit.SECONDS);
 
         //Keep screen on while working
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

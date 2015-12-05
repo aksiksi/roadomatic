@@ -58,23 +58,14 @@ public class RoadomaticUpdater implements Runnable {
             if (lat == -1)
                 return;
 
-            Log.d("MAIN", lat + "");
-
             // {"lat": lat, "lng": lng}
             String s = "{\"lat\":" + lat + "," + "\"lng\":" + lng + "}";
 
-            Log.d("MAIN", s);
-
+            // {"o": 1, "f": 1, "n": "Shei..", "s": 80}
             JSONObject resp = mRequest.sendAndReceive(s);
 
-            if (resp == null) {
-                Log.d("MAIN", "Server is offline");
+            if (resp == null)
                 return;
-            }
-
-            // {"o": 1, "f": 1, "n": "Shei..", "s": 80}
-
-            Log.d("MAIN", resp.getInt("s") + "");
 
             final int speed = resp.getInt("s");
 
