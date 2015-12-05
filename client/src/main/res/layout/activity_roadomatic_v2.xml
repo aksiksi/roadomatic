@@ -4,7 +4,8 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:foregroundGravity="bottom"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:background="#ffffff">
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -16,8 +17,8 @@
     </LinearLayout>
 
     <ImageView
-        android:layout_width="162dp"
-        android:layout_height="154dp"
+        android:layout_width="190dp"
+        android:layout_height="195dp"
         android:id="@+id/SpeedSign"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
@@ -30,9 +31,10 @@
         android:id="@+id/Speed"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:textSize="20dp"
+        android:textSize="85dp"
         android:layout_gravity="center"
-        android:text="speed" />
+        android:text="- -"
+        android:textColor="#f0010101"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -42,7 +44,9 @@
         android:layout_centerHorizontal="true"
         android:textSize="20dp"
         android:text="Street Name"
-        android:layout_gravity="center|top" />
+        android:layout_gravity="center|top"
+        android:layout_marginTop="7dp"
+        android:textColor="#010101"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -52,7 +56,9 @@
         android:layout_centerHorizontal="true"
         android:textSize="15dp"
         android:text="last updated Time"
-        android:layout_gravity="center_horizontal|bottom" />
+        android:layout_gravity="center_horizontal|bottom"
+        android:textColor="#010101"
+        android:layout_marginBottom="3dp"/>
 
     <ImageView
         android:layout_width="106dp"

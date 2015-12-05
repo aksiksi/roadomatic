@@ -65,7 +65,7 @@ public class RoadomaticUpdater implements Runnable {
 
             Log.d("MAIN", s);
 
-            JSONObject resp = mReq.sendAndReceive(s);
+            JSONObject resp = mRequest.sendAndReceive(s);
 
             if (resp == null) {
                 Log.d("MAIN", "Server is offline");

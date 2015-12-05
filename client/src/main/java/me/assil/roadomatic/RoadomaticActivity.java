@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import java.util.concurrent.Executors;
@@ -63,6 +64,9 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         // Execute the runnable at a fixed rate (once every three seconds)
         mTask = mPool.scheduleAtFixedRate(mUpdater, 0, 3, TimeUnit.SECONDS);
+
+        //Keep screen on while working
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
