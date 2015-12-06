@@ -1,5 +1,8 @@
 package me.assil.roadomatic;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -8,6 +11,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.concurrent.Executors;
@@ -21,7 +25,9 @@ public class RoadomaticActivity extends ActionBarActivity {
     ScheduledExecutorService mPool;
     ScheduledFuture mTask;
 
-    public TextView mSpeed;
+    TextView mSpeed;
+    TextView mName;
+    TextView mLastUpdated;
 
     public class MyLocationListener implements LocationListener {
         public double mLat = -1;
@@ -49,6 +55,11 @@ public class RoadomaticActivity extends ActionBarActivity {
         setContentView(R.layout.activity_roadomatic_v2);
 
         mSpeed = (TextView) findViewById(R.id.Speed);
+        mName = (TextView) findViewById(R.id.StreetName);
+        mLastUpdated = (TextView) findViewById(R.id.UpdateTime);
+
+        mName.setText("Waiting for GPS...");
+        greyOutImages();
 
         // GPS setup
         LocationManager m = (LocationManager) getSystemService(RoadomaticActivity.LOCATION_SERVICE);
@@ -57,7 +68,7 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         // Referencing the RoadomaticUpdater class to a new Object with an input
         // where "this" refers to the activity
-        mUpdater = new RoadomaticUpdater(mSpeed, this, l);
+        mUpdater = new RoadomaticUpdater(mSpeed, mName, mLastUpdated, this, l);
 
         // Initializing the thread pool with 1 thread
         mPool = Executors.newScheduledThreadPool(1);
@@ -67,6 +78,15 @@ public class RoadomaticActivity extends ActionBarActivity {
 
         //Keep screen on while working
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    private void greyOutImages() {
+        int[] ids = new int[]{R.id.Silent, R.id.School, R.id.mosque, R.id.Airport};
+
+        for (int id: ids) {
+            ImageView iv = (ImageView) findViewById(id);
+            iv.setAlpha(0.5f);
+        }
     }
 
     @Override

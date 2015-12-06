@@ -33,7 +33,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="85dp"
         android:layout_gravity="center"
-        android:text="- -"
+        android:text="--"
         android:textColor="#f0010101"/>
 
     <TextView
@@ -55,7 +55,6 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:textSize="15dp"
-        android:text="last updated Time"
         android:layout_gravity="center_horizontal|bottom"
         android:textColor="#010101"
         android:layout_marginBottom="3dp"/>
@@ -67,7 +66,8 @@
         android:layout_gravity="left|bottom"
         android:src="@drawable/silent"
         android:layout_marginLeft="10dp"
-        android:layout_marginBottom="10dp" />
+        android:layout_marginBottom="10dp"
+        />
 
     <ImageView
         android:layout_width="124dp"

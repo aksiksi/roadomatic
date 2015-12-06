@@ -20,17 +20,29 @@ import java.lang.Runnable;
  * Created by saeed_000 on 10/30/2015.
  */
 public class RoadomaticUpdater implements Runnable {
-    TextView mText;
+    TextView mSpeed;
+    TextView mName;
+    TextView mLastUpdated;
+
     Activity mActivity;
+
     RoadomaticRequest mRequest;
     RoadomaticActivity.MyLocationListener mListener;
 
+    private int reqCount;
+
     // Constructor to initialize the variables
-    public RoadomaticUpdater(TextView text, Activity activity, RoadomaticActivity.MyLocationListener l) {
-        mText = text;
+    public RoadomaticUpdater(TextView speed, TextView name, TextView lastUpdated, Activity activity,
+                             RoadomaticActivity.MyLocationListener l) {
+        mSpeed = speed;
+        mName = name;
+        mLastUpdated = lastUpdated;
+
         mActivity = activity;
         mRequest = new RoadomaticRequest();
         mListener = l;
+
+        reqCount = 0;
     }
 
     public void close() {
@@ -63,17 +75,39 @@ public class RoadomaticUpdater implements Runnable {
 
             // {"o": 1, "f": 1, "n": "Shei..", "s": 80}
             JSONObject resp = mRequest.sendAndReceive(s);
+            reqCount++;
 
-            if (resp == null)
-                return;
+            final String name;
+            final int speed;
 
-            final int speed = resp.getInt("s");
+            if (resp == null || resp.getInt("o") == 0) {
+                name = "Server offline!";
+                speed = -1;
+            } else {
+                int found = resp.getInt("f");
+
+                if (found == 0) {
+                    name = "Road not found!";
+                    speed = -1;
+                }
+                else {
+                    name = resp.getString("n");
+                    speed = resp.getInt("s");
+                }
+            }
 
             // Update the UI
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mText.setText(speed + "");
+                    mName.setText(name);
+
+                    if (speed == -1)
+                        mSpeed.setText("--");
+                    else
+                        mSpeed.setText(speed + "");
+
+                    mLastUpdated.setText("Made " + reqCount + " requests");
                 }
             });
 
